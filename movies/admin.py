@@ -11,9 +11,8 @@ class MovieAdmin(admin.ModelAdmin):
     ordering = ('-release_year', 'title')
 
 
-@admin.register(models.Actor)
-class ActorAdmin(admin.ModelAdmin):
-    list_display = ('name', 'birth_date')
+@admin.register(models.Creator)
+class CreatorAdmin(admin.ModelAdmin):
+    list_display = ('name',)
     search_fields = ('name',)
-    list_filter = ('birth_date',)
     ordering = ('name',)

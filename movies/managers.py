@@ -11,7 +11,7 @@ class MovieManager(models.Manager):
         return qs.prefetch_related('actors')
 
 
-class ActorManager(models.Manager):
+class CreatorManager(models.Manager):
     def for_detail_view(self):
         qs = self.get_queryset()
         return qs.prefetch_related('movies')
