@@ -4,7 +4,7 @@ import json
 from aiohttp import ClientSession
 from bs4 import BeautifulSoup
 
-from .. import models
+from . import models, utils
 
 ROOT_URL = "https://www.csfd.cz%(url)s"
 
@@ -32,7 +32,12 @@ async def sem_task(scrape_task):
 class CSFDService:
     async def scrape_catalog(self) -> list[models.Movie]:
         """
-        Scrape catalog of top 300 movies and their actors
+        Scrape the CSFD leaderboard for top movies.
+
+        This method fetches the top movies from the CSFD leaderboard,
+        downloads their details, and returns a list of Movie objects.
+
+        :return: List of Movie objects
         """
         async with ClientSession() as session:
             leaderboard_results = await asyncio.gather(
@@ -51,10 +56,11 @@ class CSFDService:
         self, session: ClientSession, page_from: int = 1
     ) -> list[str]:
         """
-        Return list of Movie ID from leaderboard
+        Get the top movies from CSFD leaderboard.
+
         :param session: aiohttp session
-        :param page_from: page from (e.g. 1, 100, 200, 300)
-        :return: list of Movie urls
+        :param page_from: Page number to start from (1, 100, 200)
+        :return: List of movie URLs
         """
         result = []
         data = await self.request(
@@ -69,8 +75,11 @@ class CSFDService:
 
     async def movie(self, session: ClientSession, movie_url: str) -> models.Movie:
         """
-        Download movie data from CSFD by url.
-        This method should be implemented to fetch movie details from CSFD.
+        Download movie data from CSFD by movie URL.
+
+        :param session: aiohttp session
+        :param movie_url: URL of the movie to scrape
+        :return: Movie object
         """
         data = await self.request(session, url=f"{movie_url}prehled/")
         soap = BeautifulSoup(data, "lxml")
@@ -82,13 +91,16 @@ class CSFDService:
 
         movie, _created = await models.Movie.objects.aget_or_create(
             url=movie_url,
-            defaults=dict({
-                "title": json_ld["name"],
-                "release_year": int(json_ld["dateCreated"]),
-                "genre": genres.text,
-                "rating": json_ld["aggregateRating"]["ratingValue"],
-                "poster": json_ld["image"],
-            })
+            defaults=dict(
+                {
+                    "title": json_ld["name"],
+                    "normalized_title": utils.normalize(json_ld["name"]),
+                    "release_year": int(json_ld["dateCreated"]),
+                    "genre": genres.text,
+                    "rating": json_ld["aggregateRating"]["ratingValue"],
+                    "poster": json_ld["image"],
+                }
+            ),
         )
         creators_nodes = [node for node in creators.find_all("div")]
         for role_key, role_value in ROLE_MAPPING.items():
@@ -98,15 +110,21 @@ class CSFDService:
             creator_node = creator_node[0]
             for creator in creator_node.find_all("a"):
                 creator_url = creator.get("href")
+                if creator_url == "#":
+                    # Skip `show more` links
+                    continue
                 creator_name = creator.text.strip()
                 creator_obj, _created = await models.Creator.objects.aget_or_create(
                     url=creator_url,
-                    defaults=dict(name=creator_name)
+                    defaults=dict(
+                        {
+                            "name": creator_name,
+                            "normalized_name": utils.normalize(creator_name),
+                        }
+                    ),
                 )
                 await models.MovieCreator.objects.aget_or_create(
-                    movie=movie,
-                    creator=creator_obj,
-                    role=role_value
+                    movie=movie, creator=creator_obj, role=role_value
                 )
         return movie
 

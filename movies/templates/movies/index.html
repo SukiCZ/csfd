@@ -1,0 +1,66 @@
+{% extends "movies/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}Top 10 Movies{% endblock %}
+
+{% block content %}
+    <div class="search-container">
+        <form method="GET" action="{% url 'movies:index' %}">
+            <input type="text" name="query" placeholder="{% trans 'Search movies...' %}" class="search-box">
+            <button type="submit" class="search-button">{% trans 'Search' %}</button>
+        </form>
+    </div>
+
+    {% if request.GET.query %}
+        <h1 class="page-title">{% trans 'Results for:' %} {{ request.GET.query }}</h1>
+    {% else %}
+        <h1 class="page-title">{% trans 'Top 10 Movies' %}</h1>
+    {% endif %}
+
+    <table class="movies-table">
+        <thead>
+        <tr>
+            <th>{% trans 'Title' %}</th>
+            <th>{% trans 'Year' %}</th>
+            <th>{% trans 'Genre' %}</th>
+            <th>{% trans 'Rating' %}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for movie in movies %}
+            <tr>
+                <td><a href="{% url 'movies:movie_detail' movie.id %}">{{ movie.title }}</a></td>
+                <td>{{ movie.title }}</td>
+                <td>{{ movie.release_year }}</td>
+                <td>{{ movie.genre }}</td>
+                <td>{{ movie.rating }}</td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="4">{% trans 'No movies found' %}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% if creators %}
+        <table class="movies-table">
+            <thead>
+            <tr>
+                <th>{% trans 'Name' %}</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for creator in creators %}
+                <tr>
+                    <td><a href="{% url 'movies:creator_detail' creator.id %}">{{ creator.name }}</a></td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="4">{% trans 'No creators found' %}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}

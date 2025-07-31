@@ -1,0 +1,46 @@
+{% extends "movies/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ movie.title }}{% endblock %}
+
+{% block content %}
+    <div class="movie-detail">
+        <div class="movie-poster">
+            {% if movie.poster %}
+                <img src="{{ movie.poster }}" alt="{{ movie.title }}" class="poster-image">
+            {% else %}
+                <div class="no-poster">{% trans "No poster available" %}</div>
+            {% endif %}
+        </div>
+
+        <div class="movie-info">
+            <h1 class="movie-title">{{ movie.title }}</h1>
+
+            <div class="movie-meta">
+                <p class="release-year"><strong>{% trans "Release Year:" %}</strong> {{ movie.release_year }}</p>
+                <p class="genre"><strong>{% trans "Genre:" %}</strong> {{ movie.genre }}</p>
+                <p class="rating"><strong>{% trans "Rating:" %}</strong> {{ movie.rating }}</p>
+            </div>
+
+            <div class="movie-creators">
+                <h3>{% trans "Cast & Crew" %}</h3>
+                {% regroup movie_creators by role as role_list %}
+                {% for role in role_list %}
+                    <div class="role-group">
+                        <h4>{{ role.grouper }}</h4>
+                        <ul class="creators-list">
+                            {% for creator in role.list %}
+                                <li><a href="{% url 'movies:creator_detail' creator.creator.id %}">{{ creator.creator.name }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% empty %}
+                    <p>{% trans "No cast or crew information available" %}</p>
+                {% endfor %}
+            </div>
+
+            <a href="{% url 'movies:index' %}" class="back-button">{% trans "Back to Movies" %}</a>
+        </div>
+    </div>
+{% endblock %}

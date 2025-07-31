@@ -1,0 +1,42 @@
+{% extends "movies/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ creator.name }}{% endblock %}
+
+{% block content %}
+<div class="creator-detail">
+    <div class="creator-info">
+        <h1 class="creator-name">{{ creator.name }}</h1>
+    </div>
+    
+    <div class="creator-filmography">
+        <h2>{% trans "Filmography" %}</h2>
+        
+        {% if creator_movies %}
+            <table class="movies-table">
+                <thead>
+                    <tr>
+                        <th>{% trans "Movie" %}</th>
+                        <th>{% trans "Year" %}</th>
+                        <th>{% trans "Role" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for movie in creator_movies %}
+                    <tr>
+                        <td><a href="{% url 'movies:movie_detail' movie.movie.id %}">{{ movie.movie.title }}</a></td>
+                        <td>{{ movie.movie.release_year }}</td>
+                        <td>{{ movie.get_role_display }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>{% trans "No movie credits found" %}</p>
+        {% endif %}
+    </div>
+    
+    <a href="{% url 'movies:index' %}" class="back-button">{% trans "Back to Movies" %}</a>
+</div>
+{% endblock %}
