@@ -39,32 +39,26 @@ class CSFDService:
 
         :return: List of Movie objects
         """
-        async with ClientSession() as session:
-            leaderboard_results = await asyncio.gather(
-                self.get_leaderboard(session, page_from=1),
-                self.get_leaderboard(session, page_from=100),
-                self.get_leaderboard(session, page_from=200),
-            )
-            movie_urls = sum(leaderboard_results, [])
-            movie_tasks = [
-                sem_task(self.movie(session, movie_url)) for movie_url in movie_urls
-            ]
-            movies = await asyncio.gather(*movie_tasks)
+        leaderboard_results = await asyncio.gather(
+            self.get_leaderboard(page_from=1),
+            self.get_leaderboard(page_from=100),
+            self.get_leaderboard(page_from=200),
+        )
+        movie_urls = sum(leaderboard_results, [])
+        movie_tasks = [sem_task(self.movie(movie_url)) for movie_url in movie_urls]
+        movies = await asyncio.gather(*movie_tasks)
         return movies
 
-    async def get_leaderboard(
-        self, session: ClientSession, page_from: int = 1
-    ) -> list[str]:
+    async def get_leaderboard(self, page_from: int = 1) -> list[str]:
         """
         Get the top movies from CSFD leaderboard.
 
-        :param session: aiohttp session
         :param page_from: Page number to start from (1, 100, 200)
         :return: List of movie URLs
         """
         result = []
         data = await self.request(
-            session, url="/zebricky/filmy/nejlepsi/", params={"from": page_from}
+            url="/zebricky/filmy/nejlepsi/", params={"from": page_from}
         )
         soap = BeautifulSoup(data, "lxml")
         box_content = soap.find("section", class_="box")
@@ -73,15 +67,14 @@ class CSFDService:
             result.append(anchor.get("href"))
         return result
 
-    async def movie(self, session: ClientSession, movie_url: str) -> models.Movie:
+    async def movie(self, movie_url: str) -> models.Movie:
         """
         Download movie data from CSFD by movie URL.
 
-        :param session: aiohttp session
         :param movie_url: URL of the movie to scrape
         :return: Movie object
         """
-        data = await self.request(session, url=f"{movie_url}prehled/")
+        data = await self.request(url=f"{movie_url}prehled/")
         soap = BeautifulSoup(data, "lxml")
         movie_node = soap.find("div", class_="main-movie-profile")
         creators = movie_node.find("div", id="creators")
@@ -129,15 +122,16 @@ class CSFDService:
         return movie
 
     @staticmethod
-    async def request(session: ClientSession, url: str, params: dict = None):
+    async def request(url: str, params: dict = None):
         """
         Make an asynchronous HTTP GET request to the specified URL with optional parameters.
         """
         url = ROOT_URL % {"url": url}
-        async with session.get(url, params=params) as response:
-            response.raise_for_status()
-            content = await response.read()
-            return content
+        async with ClientSession() as session:
+            async with session.get(url, params=params) as response:
+                response.raise_for_status()
+                content = await response.read()
+                return content
 
 
 CSFDClient = CSFDService()
