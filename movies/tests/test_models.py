@@ -4,11 +4,7 @@ import pytest
 from django.db import IntegrityError
 
 from movies.models import Movie, MovieCreator
-from movies.tests.factories import (
-    MovieFactory,
-    CreatorFactory,
-    MovieCreatorFactory,
-)
+from movies.tests.factories import CreatorFactory, MovieCreatorFactory, MovieFactory
 
 
 @pytest.mark.django_db

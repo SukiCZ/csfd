@@ -3,7 +3,7 @@ from django.urls import reverse
 from pytest_django.asserts import assertContains, assertTemplateUsed
 
 from movies import models
-from movies.tests.factories import MovieFactory, CreatorFactory, MovieCreatorFactory
+from movies.tests.factories import CreatorFactory, MovieCreatorFactory, MovieFactory
 
 
 @pytest.mark.django_db
