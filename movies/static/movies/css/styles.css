@@ -7,6 +7,10 @@ body {
     color: #333;
 }
 
+.content {
+    padding: 20px;
+}
+
 .search-container {
     text-align: center;
     margin: 20px 0 30px 0;
@@ -67,7 +71,6 @@ body {
     max-width: 100%;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    margin-left: 10px;
 }
 
 .no-poster {
