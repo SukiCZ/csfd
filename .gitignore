@@ -13,7 +13,7 @@ wheels/
 .idea/
 
 # Database files
-*.sqlite3
+#*.sqlite3
 
 # Static files
 /static
