@@ -10,7 +10,9 @@ DEFAULT_IMAGE = (
 
 class Movie(models.Model):
     title = models.CharField(_("title"), max_length=200)
-    normalized_title = models.CharField(_("normalized title"), max_length=200)
+    normalized_title = models.CharField(
+        _("normalized title"), db_index=True, max_length=200
+    )
     url = models.CharField(_("url"), max_length=100, unique=True)
     release_year = models.PositiveIntegerField(_("release year"))
     genre = models.CharField(_("genre"), max_length=100)
@@ -30,7 +32,9 @@ class Movie(models.Model):
 
 class Creator(models.Model):
     name = models.CharField(_("name"), max_length=100)
-    normalized_name = models.CharField(_("normalized name"), max_length=100)
+    normalized_name = models.CharField(
+        _("normalized name"), db_index=True, max_length=100
+    )
     url = models.CharField(_("url"), max_length=100, unique=True)
     movies = models.ManyToManyField(
         Movie, related_name="creators", through="MovieCreator"
